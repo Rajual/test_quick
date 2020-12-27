@@ -51,6 +51,7 @@ class _UserSearchState extends State<UserSearch> {
                   builder: (BuildContext context,
                       AsyncSnapshot<QuerySnapshot> snapshat) {
                     if (snapshat.hasData) {
+                      DatabaseMethods().getUsers();
                       List names = snapshat.data.docs.map((e) {
                         return e['displayName'];
                       }).toList();

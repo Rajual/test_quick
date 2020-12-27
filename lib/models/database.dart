@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class DatabaseMethods {
   uploadUserInfo(String _uid, Map _data) {
@@ -10,7 +11,7 @@ class DatabaseMethods {
         .collection('chats')
         .doc(send + '_' + receives)
         .collection('chat')
-        .add({'message': message, 'sendBy': send});
+        .add({'message': message, 'sendBy': send, 'time': Timestamp.now()});
   }
 
   createChat(String send, String receives) {
@@ -33,5 +34,11 @@ class DatabaseMethods {
             return e['chatRoomID'];
           }));
         });
+  }
+
+  getUsers() {
+    print(FirebaseFirestore.instance.collection('user').get().then((value) {
+      print(value.docs);
+    }));
   }
 }

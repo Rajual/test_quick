@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_quick/models/database.dart';
@@ -46,6 +47,27 @@ class _ChatsState extends State<Chats> {
             Expanded(
               child: Stack(
                 children: [
+                  StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('chats')
+                          .doc(
+                              'julioalfonso8003@gmail.com_julioalfono@gmail.com')
+                          .collection('chat')
+                          .orderBy('time', descending: false)
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshat) {
+                        print(snapshat.data.docs);
+                        List message = snapshat.data.docs.map((e) {
+                          return e['message'];
+                        }).toList();
+                        return ListView.builder(
+                          itemCount: snapshat.data.docs.length,
+                          itemBuilder: (context, index) {
+                            return Text(message[index]);
+                          },
+                        );
+                      }),
                   Container(
                       alignment: Alignment.bottomCenter,
                       child: Padding(
