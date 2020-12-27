@@ -43,13 +43,13 @@ class MyApp extends StatelessWidget {
                   listen:
                       true); //La variable state almacena el estado de autenticacion del usuario, junto con su información.
               //Al preguntar por el parametro state.loggedIn se sabe si redireccionar a la LoginPage o a la HomePage.
-              if (state.loggedIn) {
-                //Retorna la pagina principal.
-                return HomePage();
-              } else {
-                //Retorna la pagina de login.
-                return LoginPage();
-              }
+              return state.loggedIn
+                  ?
+                  //Retorna la pagina principal.
+                  HomePage()
+                  :
+                  //Retorna la pagina de login.
+                  LoginPage();
             },
           },
         ));

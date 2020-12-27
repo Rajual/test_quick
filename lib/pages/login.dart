@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_quick/models/login_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -63,16 +64,16 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 //Logo de la empresa.
                 Padding(
-                  padding: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(1),
                   child: Image(
-                    height: 60,
-                    width: 60,
+                    height: 40,
+                    width: 40,
                     image: AssetImage('assets/logo/Quick.png'),
                   ),
                 ),
                 //Campos de entrada
                 Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: EdgeInsets.all(10),
                   child: formLogin(context, user),
                 ),
                 //Boton de tipo de usuario nuevo o registrado

@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             _scaffoldKey.currentState.openDrawer();
           }),
-      body: null, //_body(),
+      body: _body(),
     );
   }
 
@@ -111,8 +111,44 @@ class _HomePageState extends State<HomePage> {
     return SafeArea(
         child: Column(
       children: <Widget>[
-        _selector(),
-        StreamBuilder<QuerySnapshot>(
+        Padding(
+          padding: const EdgeInsets.all(1),
+          child: ListTile(
+            leading: StatefulBuilder(
+              builder: (context, setState) {
+                return MaterialButton(
+                  onPressed: () {
+                    setState(() {});
+                  },
+                  minWidth: 0,
+                  child: CircleAvatar(radius: 25.0, backgroundImage: null
+                      /* linkPhoto != '' ? NetworkImage(linkPhoto) : null*/),
+                );
+              },
+            ),
+            title: Text(
+              'GrupChat',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+            subtitle: Text(
+              '${1000}' + ' ',
+              style: TextStyle(fontSize: 16.0, color: Colors.blueGrey),
+            ),
+            trailing: Container(
+              decoration: BoxDecoration(
+                  color: Colors.blueAccent.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(5.0)),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Text(
+                  '${1000}' + ' ',
+                  style: TextStyle(color: Colors.blueAccent),
+                ),
+              ),
+            ),
+          ),
+        ),
+        /* StreamBuilder<QuerySnapshot>(
             stream: _query,
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshat) {
@@ -151,7 +187,7 @@ class _HomePageState extends State<HomePage> {
               return Center(
                 child: CircularProgressIndicator(),
               );
-            })
+            })*/
       ],
     ));
   }

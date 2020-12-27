@@ -46,8 +46,10 @@ class AuthFireBase {
       final User user = userCredential.user;
 //////////////
       Map<String, dynamic> mapUser = {
-        'displayName': user.displayName,
-        'photoURL': user.photoURL
+        'displayName': user.displayName.toLowerCase(),
+        'lastName': '',
+        'photoURL': user.photoURL,
+        'email': user.email
       };
 
       DatabaseMethods().uploadUserInfo(user.uid, mapUser);
@@ -103,9 +105,10 @@ class AuthFireBase {
 
       //////////////
       Map<String, dynamic> mapUser = {
-        'displayName': name,
-        'lastName': lastname,
-        'photoURL': user.user.photoURL
+        'displayName': name.toLowerCase(),
+        'lastName': lastname.toLowerCase(),
+        'photoURL': user.user.photoURL == null ? '' : user.user.photoURL,
+        'email': email
       };
 
       DatabaseMethods().uploadUserInfo(user.user.uid, mapUser);
