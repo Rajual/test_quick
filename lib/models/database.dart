@@ -6,16 +6,16 @@ class DatabaseMethods {
     FirebaseFirestore.instance.collection('user').doc(_uid).set(_data);
   }
 
-  sendMessage(String message, String send, String receives) {
+  sendMessage(String message, String send, String chatID) {
     FirebaseFirestore.instance
         .collection('chats')
-        .doc(send + '_' + receives)
+        .doc(chatID)
         .collection('chat')
         .add({'message': message, 'sendBy': send, 'time': Timestamp.now()});
   }
 
-  createChat(String send, String receives) {
-    FirebaseFirestore.instance
+  createChat(String send, String receives) async {
+    await FirebaseFirestore.instance
         .collection('chats')
         .doc(send + '_' + receives)
         .set({

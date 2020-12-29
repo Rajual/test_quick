@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_quick/models/database.dart';
 import 'package:test_quick/models/login_state.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Chats extends StatefulWidget {
   final String email;
@@ -11,7 +12,10 @@ class Chats extends StatefulWidget {
 
   final String linkPhoto;
 
-  Chats({Key key, this.name, this.email, this.linkPhoto}) : super(key: key);
+  final String chatID;
+
+  Chats({Key key, this.name, this.email, this.linkPhoto, this.chatID})
+      : super(key: key);
 
   @override
   _ChatsState createState() => _ChatsState();
@@ -19,6 +23,9 @@ class Chats extends StatefulWidget {
 
 class _ChatsState extends State<Chats> {
   TextEditingController message = TextEditingController();
+  ScrollController _scrollController = ScrollController();
+
+  PickedFile _image;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,28 +52,38 @@ class _ChatsState extends State<Chats> {
               ),
             ),
             Expanded(
-              child: Stack(
+              child: Column(
                 children: [
                   StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('chats')
-                          .doc(
-                              'julioalfonso8003@gmail.com_julioalfono@gmail.com')
+                          .doc(widget.chatID)
                           .collection('chat')
                           .orderBy('time', descending: false)
                           .snapshots(),
                       builder: (BuildContext context,
                           AsyncSnapshot<QuerySnapshot> snapshat) {
-                        print(snapshat.data.docs);
-                        List message = snapshat.data.docs.map((e) {
-                          return e['message'];
-                        }).toList();
-                        return ListView.builder(
-                          itemCount: snapshat.data.docs.length,
-                          itemBuilder: (context, index) {
-                            return Text(message[index]);
-                          },
-                        );
+                        if (snapshat.hasData) {
+                          print(snapshat.data);
+                          List message = snapshat.data.docs.map((e) {
+                            return e['message'];
+                          }).toList();
+                          List sendBy = snapshat.data.docs.map((e) {
+                            return e['sendBy'];
+                          }).toList();
+                          return Expanded(
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: snapshat.data.docs.length,
+                              itemBuilder: (context, index) {
+                                return stileMessage(
+                                    message[index], sendBy[index]);
+                              },
+                            ),
+                          );
+                        } else {
+                          return CircularProgressIndicator();
+                        }
                       }),
                   Container(
                       alignment: Alignment.bottomCenter,
@@ -77,7 +94,7 @@ class _ChatsState extends State<Chats> {
                             Expanded(
                               child: TextField(
                                 controller: message,
-                                //onChanged: (value) {},
+                                onChanged: (value) {},
                                 decoration: new InputDecoration(
                                     labelText: 'Escribe...'),
                                 autocorrect: true,
@@ -86,7 +103,9 @@ class _ChatsState extends State<Chats> {
                             MaterialButton(
                                 minWidth: 0,
                                 padding: EdgeInsets.all(1.0),
-                                onPressed: () {},
+                                onPressed: () async {
+                                  await getImage();
+                                },
                                 child: Icon(Icons.image, size: 30)),
                             MaterialButton(
                                 padding: EdgeInsets.all(1.0),
@@ -98,8 +117,11 @@ class _ChatsState extends State<Chats> {
                                               listen: false)
                                           .user
                                           .email,
-                                      widget.email);
+                                      widget.chatID);
                                   message.clear();
+                                  _scrollController.jumpTo(_scrollController
+                                          .position.maxScrollExtent +
+                                      156);
                                 },
                                 child: Icon(Icons.send_rounded, size: 30)),
                           ],
@@ -111,6 +133,53 @@ class _ChatsState extends State<Chats> {
           ],
         ),
       ),
+    );
+  }
+
+  ////
+  Future getImage() async {
+    PickedFile image =
+        await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _image = image;
+      print('Imagen: ${_image.path}');
+    });
+  }
+
+  ///
+
+  Widget stileMessage(String message, String sendBy) {
+    bool isMyMessage =
+        (Provider.of<LoginState>(context, listen: false).user.email == sendBy);
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      padding: isMyMessage
+          ? EdgeInsets.only(left: 40, right: 1)
+          : EdgeInsets.only(left: 1, right: 40),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+            color: Colors.blueAccent.withOpacity(0.2),
+            borderRadius: isMyMessage
+                ? BorderRadius.only(
+                    topLeft: Radius.circular(23),
+                    bottomLeft: Radius.circular(23),
+//              bottomRight: Radius.circular(23),
+                    topRight: Radius.circular(23),
+                  )
+                : BorderRadius.only(
+                    topLeft: Radius.circular(23),
+//              bottomLeft: Radius.circular(23),
+                    bottomRight: Radius.circular(23),
+                    topRight: Radius.circular(23),
+                  )),
+        child: Text(
+          message,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+        ),
+      ),
+      alignment: isMyMessage ? Alignment.centerRight : Alignment.centerLeft,
     );
   }
 }

@@ -14,6 +14,7 @@ class UserSearch extends StatefulWidget {
 
 num _number = 0;
 Stream<QuerySnapshot> _query;
+String chatID = '';
 
 class _UserSearchState extends State<UserSearch> {
   @override
@@ -90,6 +91,41 @@ class _UserSearchState extends State<UserSearch> {
     );
   }
 
+  Future<Null> idChat(String email) async {
+    String value = '';
+    QuerySnapshot value2;
+    QuerySnapshot value1 = await FirebaseFirestore.instance
+        .collection('chats')
+        .where('users', isEqualTo: [
+      Provider.of<LoginState>(context, listen: false).user.email,
+      email
+    ]).get();
+
+    if (value1.docs.isEmpty) {
+      value2 = await FirebaseFirestore.instance
+          .collection('chats')
+          .where('users', isEqualTo: [
+        email,
+        Provider.of<LoginState>(context, listen: false).user.email
+      ]).get();
+      print('value2.docs.isEmpty');
+      print(value2.docs.isEmpty);
+      if (value2.docs.isEmpty) {
+        value = '';
+      } else {
+        value = value2.docs[0]['chatRoomID'];
+      }
+    } else {
+      print('value1.docs');
+      value = value1.docs[0]['chatRoomID'];
+    }
+    print('value');
+    print(value);
+    setState(() {
+      chatID = value;
+    });
+  }
+
   Widget _item(String linkPhoto, String name, String email) {
     return Padding(
       padding: const EdgeInsets.all(1),
@@ -97,27 +133,34 @@ class _UserSearchState extends State<UserSearch> {
         leading: StatefulBuilder(
           builder: (context, setState) {
             return MaterialButton(
-              onPressed: () {
-                setState(() {
+              onPressed: () async {
+                await idChat(email);
+                if (chatID == '') {
                   DatabaseMethods().createChat(
                       Provider.of<LoginState>(context, listen: false)
                           .user
                           .email,
                       email);
-                  DatabaseMethods().searchChat(
-                      Provider.of<LoginState>(context, listen: false)
+                  chatID = Provider.of<LoginState>(context, listen: false)
                           .user
-                          .email,
-                      email);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (contest) => Chats(
-                                name: name,
-                                email: email,
-                                linkPhoto: linkPhoto,
-                              )));
-                });
+                          .email +
+                      '_' +
+                      email;
+                }
+                print('chatID');
+                print(chatID);
+                DatabaseMethods().searchChat(
+                    Provider.of<LoginState>(context, listen: false).user.email,
+                    email);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (contest) => Chats(
+                              name: name,
+                              email: email,
+                              linkPhoto: linkPhoto,
+                              chatID: chatID,
+                            )));
               },
               minWidth: 0,
               child: CircleAvatar(

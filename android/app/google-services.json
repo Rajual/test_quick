@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "1019029113297-nppldi4qqo9bo5bujkso3fmrreq6gc14.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "co.juliorb.test_quick",
+            "certificate_hash": "67a56ac980d31b1139d0870e4515b6709cd48343"
+          }
+        },
+        {
           "client_id": "1019029113297-kpkt2kt9iq09i50s8m21g8kc9fqkio7h.apps.googleusercontent.com",
           "client_type": 3
         }
