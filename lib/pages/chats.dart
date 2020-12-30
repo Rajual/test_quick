@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_quick/models/database.dart';
 import 'package:test_quick/models/login_state.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Chats extends StatefulWidget {
   final String email;
@@ -25,7 +28,9 @@ class _ChatsState extends State<Chats> {
   TextEditingController message = TextEditingController();
   ScrollController _scrollController = ScrollController();
 
-  PickedFile _image;
+  String _image = '';
+
+  String m = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,43 +94,80 @@ class _ChatsState extends State<Chats> {
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: EdgeInsets.all(10),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: message,
-                                onChanged: (value) {},
-                                decoration: new InputDecoration(
-                                    labelText: 'Escribe...'),
-                                autocorrect: true,
+                        child: StatefulBuilder(builder: (context, setStat) {
+                          return Column(
+                            //Prueba de superposicción de imagen.
+                            children: [
+                              Container(
+                                child: Column(
+                                  children: [
+                                    MaterialButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _image = '';
+                                          });
+                                        },
+                                        child: Container(
+                                            child: _image == ''
+                                                ? null
+                                                : Icon(Icons.close))),
+                                    Container(
+                                      child: _image != ''
+                                          ? Image.file(
+                                              File(_image),
+                                              height: 100,
+                                            )
+                                          : null,
+                                    )
+                                  ],
+                                ),
                               ),
-                            ),
-                            MaterialButton(
-                                minWidth: 0,
-                                padding: EdgeInsets.all(1.0),
-                                onPressed: () async {
-                                  await getImage();
-                                },
-                                child: Icon(Icons.image, size: 30)),
-                            MaterialButton(
-                                padding: EdgeInsets.all(1.0),
-                                minWidth: 0,
-                                onPressed: () {
-                                  DatabaseMethods().sendMessage(
-                                      message.text,
-                                      Provider.of<LoginState>(context,
-                                              listen: false)
-                                          .user
-                                          .email,
-                                      widget.chatID);
-                                  message.clear();
-                                  _scrollController.jumpTo(_scrollController
-                                          .position.maxScrollExtent +
-                                      156);
-                                },
-                                child: Icon(Icons.send_rounded, size: 30)),
-                          ],
-                        ),
+                              //Icon(Icons.ac_unit),
+                              //Text(m),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: message,
+                                      onChanged: (value) {},
+                                      decoration: new InputDecoration(
+                                          labelText: 'Escribe...'),
+                                      autocorrect: true,
+                                    ),
+                                  ),
+                                  MaterialButton(
+                                      minWidth: 0,
+                                      padding: EdgeInsets.all(1.0),
+                                      onPressed: () async {
+                                        await getImage();
+                                      },
+                                      child: Icon(Icons.image, size: 30)),
+                                  MaterialButton(
+                                      padding: EdgeInsets.all(1.0),
+                                      minWidth: 0,
+                                      onPressed: () {
+                                        setState(() {});
+                                        DatabaseMethods().sendMessage(
+                                            message.text,
+                                            Provider.of<LoginState>(context,
+                                                    listen: false)
+                                                .user
+                                                .email,
+                                            widget.chatID);
+                                        message.clear();
+                                        _scrollController.jumpTo(
+                                            _scrollController
+                                                    .position.maxScrollExtent +
+                                                156);
+                                        updateImage();
+                                      },
+                                      child:
+                                          Icon(Icons.send_rounded, size: 30)),
+                                ],
+                              ),
+                            ],
+                          );
+                        }),
                       ))
                 ],
               ),
@@ -138,12 +180,29 @@ class _ChatsState extends State<Chats> {
 
   ////
   Future getImage() async {
-    PickedFile image =
-        await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _image = image;
-      print('Imagen: ${_image.path}');
+    await ImagePicker().getImage(source: ImageSource.gallery).then((value) {
+      setState(() {
+        _image = value.path.toString();
+        print('Imagen: $_image');
+      });
     });
+  }
+
+  updateImage() async {
+    /*basename();
+    print(_image);
+    if (_image != '') {
+      Reference firebaseStorageRef =
+          FirebaseStorage.instance.ref().child('update/imagen');
+      UploadTask uploadTask = firebaseStorageRef.putFile(File(_image));
+
+      print('Resultado: $uploadTask');
+    }*/
+    StorageReference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child(_image);
+    StorageUploadTask uploadTask = firebaseStorageRef.putFile(File(_image));
+    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+    print(taskSnapshot);
   }
 
   ///
