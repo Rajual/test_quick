@@ -12,6 +12,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_quick/pages/settinguser.dart';
 import 'package:test_quick/pages/usersearch.dart';
 
 class HomePage extends StatefulWidget {
@@ -66,9 +67,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key: _scaffoldKey,
       endDrawer: Drawer(
-          child: Icon(
-        Icons.ac_unit,
-      )),
+          child: SettingUser(
+              uid: Provider.of<LoginState>(context, listen: false).user.uid)),
       drawer: Drawer(
         child: UserSearch(),
       ),

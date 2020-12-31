@@ -3,15 +3,25 @@ import 'package:firebase_core/firebase_core.dart';
 
 class DatabaseMethods {
   uploadUserInfo(String _uid, Map _data) {
+    FirebaseFirestore.instance.collection('user').doc(_uid).update(_data);
+  }
+
+  setUserInfo(String _uid, Map _data) {
     FirebaseFirestore.instance.collection('user').doc(_uid).set(_data);
   }
 
-  sendMessage(String message, String send, String chatID) {
+  sendMessage(String message, String send, String chatID,
+      [String imageURL = '']) {
     FirebaseFirestore.instance
         .collection('chats')
         .doc(chatID)
         .collection('chat')
-        .add({'message': message, 'sendBy': send, 'time': Timestamp.now()});
+        .add({
+      'message': message,
+      'imageURL': imageURL,
+      'sendBy': send,
+      'time': Timestamp.now()
+    });
   }
 
   createChat(String send, String receives) async {
@@ -39,6 +49,16 @@ class DatabaseMethods {
   getUsers() {
     print(FirebaseFirestore.instance.collection('user').get().then((value) {
       print(value.docs);
+    }));
+  }
+
+  Future getUser(String uid) async {
+    return await Future.value(FirebaseFirestore.instance
+        .collection('user')
+        .doc(uid)
+        .get()
+        .then((value) {
+      return value.data();
     }));
   }
 }

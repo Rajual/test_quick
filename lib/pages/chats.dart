@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_quick/models/database.dart';
+import 'package:test_quick/services/database.dart';
 import 'package:test_quick/models/login_state.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -31,6 +31,8 @@ class _ChatsState extends State<Chats> {
   String _image = '';
 
   String m = '';
+
+  String imageURL = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,13 +78,16 @@ class _ChatsState extends State<Chats> {
                           List sendBy = snapshat.data.docs.map((e) {
                             return e['sendBy'];
                           }).toList();
+                          List imageURL = snapshat.data.docs.map((e) {
+                            return e['imageURL'];
+                          }).toList();
                           return Expanded(
                             child: ListView.builder(
                               controller: _scrollController,
                               itemCount: snapshat.data.docs.length,
                               itemBuilder: (context, index) {
-                                return stileMessage(
-                                    message[index], sendBy[index]);
+                                return stileMessage(message[index],
+                                    sendBy[index], imageURL[index]);
                               },
                             ),
                           );
@@ -96,21 +101,22 @@ class _ChatsState extends State<Chats> {
                         padding: EdgeInsets.all(10),
                         child: StatefulBuilder(builder: (context, setStat) {
                           return Column(
-                            //Prueba de superposicción de imagen.
+                            //Prueba de superposición de imagen.
                             children: [
                               Container(
                                 child: Column(
                                   children: [
-                                    MaterialButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            _image = '';
-                                          });
-                                        },
-                                        child: Container(
-                                            child: _image == ''
-                                                ? null
-                                                : Icon(Icons.close))),
+                                    Container(
+                                      child: _image == ''
+                                          ? null
+                                          : MaterialButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _image = '';
+                                                });
+                                              },
+                                              child: Icon(Icons.close)),
+                                    ),
                                     Container(
                                       child: _image != ''
                                           ? Image.file(
@@ -145,21 +151,27 @@ class _ChatsState extends State<Chats> {
                                   MaterialButton(
                                       padding: EdgeInsets.all(1.0),
                                       minWidth: 0,
-                                      onPressed: () {
+                                      onPressed: () async {
                                         setState(() {});
+                                        if (_image != '') {
+                                          await updateImage();
+                                        }
                                         DatabaseMethods().sendMessage(
                                             message.text,
                                             Provider.of<LoginState>(context,
                                                     listen: false)
                                                 .user
                                                 .email,
-                                            widget.chatID);
+                                            widget.chatID,
+                                            imageURL);
                                         message.clear();
                                         _scrollController.jumpTo(
                                             _scrollController
                                                     .position.maxScrollExtent +
                                                 156);
-                                        updateImage();
+                                        _image = '';
+                                        imageURL = '';
+                                        print(imageURL);
                                       },
                                       child:
                                           Icon(Icons.send_rounded, size: 30)),
@@ -188,26 +200,22 @@ class _ChatsState extends State<Chats> {
     });
   }
 
-  updateImage() async {
-    /*basename();
-    print(_image);
-    if (_image != '') {
-      Reference firebaseStorageRef =
-          FirebaseStorage.instance.ref().child('update/imagen');
-      UploadTask uploadTask = firebaseStorageRef.putFile(File(_image));
+  Future updateImage() async {
+    Reference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child('image/${_image.split('/').last}');
+    UploadTask uploadTask = firebaseStorageRef.putFile(File(_image));
+    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
 
-      print('Resultado: $uploadTask');
-    }*/
-    StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child(_image);
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(File(_image));
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    print(taskSnapshot);
+    await taskSnapshot.ref.getDownloadURL().then((value) {
+      setState(() {
+        imageURL = value;
+      });
+    });
   }
 
   ///
 
-  Widget stileMessage(String message, String sendBy) {
+  Widget stileMessage(String message, String sendBy, [String imageURL = '']) {
     bool isMyMessage =
         (Provider.of<LoginState>(context, listen: false).user.email == sendBy);
 
@@ -233,9 +241,24 @@ class _ChatsState extends State<Chats> {
                     bottomRight: Radius.circular(23),
                     topRight: Radius.circular(23),
                   )),
-        child: Text(
-          message,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+        child: Column(
+          children: [
+            imageURL == ''
+                ? Text(
+                    message,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  )
+                : Column(
+                    children: [
+                      Container(child: Image.network(imageURL)),
+                      Text(
+                        message,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 10),
+                      )
+                    ],
+                  ),
+          ],
         ),
       ),
       alignment: isMyMessage ? Alignment.centerRight : Alignment.centerLeft,

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:test_quick/models/database.dart';
+import 'package:test_quick/services/database.dart';
 
 class AuthFireBase {
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
@@ -44,15 +44,22 @@ class AuthFireBase {
           await firebaseAuth.signInWithCredential(credential);
 
       final User user = userCredential.user;
-//////////////
-      Map<String, dynamic> mapUser = {
-        'displayName': user.displayName.toLowerCase(),
-        'lastName': '',
-        'photoURL': user.photoURL,
-        'email': user.email
-      };
 
-      DatabaseMethods().uploadUserInfo(user.uid, mapUser);
+//////////////
+      var existe = await DatabaseMethods().getUser(user.uid);
+
+      if (existe == null) {
+        print('Usuario: $existe');
+        Map<String, dynamic> mapUser = {
+          'displayName': user.displayName.toLowerCase(),
+          'lastName': '',
+          'photoURL': user.photoURL,
+          'email': user.email
+        };
+
+        DatabaseMethods().setUserInfo(user.uid, mapUser);
+      }
+
       ////////////////
       return user;
     } catch (e) {
@@ -139,13 +146,13 @@ class AuthFireBase {
 */
   Future<void> signOut() async {
     try {
-      firebaseAuth.signOut();
+      await firebaseAuth.signOut();
     } catch (e) {
       print(e);
     }
 
     try {
-      _googleSignIn.disconnect().then((value) => print(value));
+      await _googleSignIn.disconnect().then((value) => print(value));
     } catch (e) {
       print(e);
     }

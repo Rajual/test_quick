@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_quick/models/database.dart';
+import 'package:test_quick/services/database.dart';
 import 'package:test_quick/models/login_state.dart';
 import 'package:test_quick/pages/chats.dart';
 
